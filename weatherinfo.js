@@ -1,4 +1,8 @@
-
+/*
+Name: Vu Duc Thuan Tran
+Student id:121804223
+My live server is:https://minethuan10.github.io/web433-assignment/
+*/
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('searchBtn').addEventListener('click', () => {
         const query = document.getElementById('searchInput').value.trim();
