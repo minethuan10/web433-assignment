@@ -12,6 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('error').textContent = 'Please enter a valid city name.';
         }
     });
+    
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(position);
+        } else {
+          x.innerHTML = "Geolocation is not supported by this browser.";
+        }
+      
 
     document.getElementById('searchInput').addEventListener('keypress', event => {
         if (event.key === 'Enter') {
