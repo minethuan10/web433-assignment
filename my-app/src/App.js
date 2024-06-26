@@ -1,69 +1,73 @@
+// App.js
 import React, { useState, useEffect } from 'react';
-import SearchBar from './components/searchBar';
-import WeatherList from './components/WeatherList';
-import Pagination from './components/Pagination';
-import { fetchWeatherByCoordinates, fetchWeatherByQuery } from './components/weatherAPI';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import Home from './components/Home';
+import Search from './components/Search';
+import VisitedCities from './components/VisitedCities';
+import CityDetail from './components/CityDetail';
+
+import { Navbar, Nav, NavDropdown, Form, FormControl, Button } from 'react-bootstrap';
+import { LinkContainer } from 'react-router-bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './App.css';
 
 const App = () => {
-  const [query, setQuery] = useState('');
-  const [weatherData, setWeatherData] = useState([]);
-  const [error, setError] = useState('');
-  const [currentPage, setCurrentPage] = useState(0);
-  const itemsPerPage = 3;
+  const [recentlyViewed, setRecentlyViewed] = useState(() => {
+    // Load visited cities from local storage
+    const savedCities = localStorage.getItem('recentlyViewed');
+    return savedCities ? JSON.parse(savedCities) : [];
+  });
+  const [searchId, setSearchId] = useState('');
 
-  useEffect(() => {
-    // Fetch local weather on component mount
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          const { latitude, longitude } = position.coords;
-          fetchWeatherByCoordinates(latitude, longitude)
-            .then(data => setWeatherData([data]))
-            .catch(() => setError('Error fetching local weather data.'));
-        },
-        () => setError('Location access denied.')
-      );
-    } else {
-      setError('Geolocation is not supported by this browser.');
-    }
-  }, []);
-
-  const handleSearch = () => {
-    if (query.trim()) {
-      fetchWeatherByQuery(query)
-        .then(data => {
-          if (data.length > 0) {
-            setWeatherData(data);
-            setError('');
-            setCurrentPage(0);
-          } else {
-            setError('No results found.');
-            setWeatherData([]);
-          }
-        })
-        .catch(() => setError('Error fetching weather data.'));
-    } else {
-      setError('Please enter a valid city name or city,country_code.');
-    }
+  const handleViewCity = (id) => {
+    setRecentlyViewed((prev) => {
+      const updated = prev.includes(id) ? prev : [...prev, id];
+      localStorage.setItem('recentlyViewed', JSON.stringify(updated)); // Save to local storage
+      return updated;
+    });
   };
-
-  const handlePrev = () => {
-    if (currentPage > 0) setCurrentPage(currentPage - 1);
-  };
-
-  const handleNext = () => {
-    if ((currentPage + 1) * itemsPerPage < weatherData.length) setCurrentPage(currentPage + 1);
-  };
-
-  const paginatedData = weatherData.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
 
   return (
-    <div className="container mt-5">
-      <h1 className="text-center">Weather Search</h1>
-      <SearchBar query={query} setQuery={setQuery} onSearch={handleSearch} error={error} />
-      <WeatherList weatherData={paginatedData} />
-      <Pagination currentPage={currentPage} totalItems={weatherData.length} itemsPerPage={itemsPerPage} onPrev={handlePrev} onNext={handleNext} />
-    </div>
+    <Router>
+      <Navbar bg="dark" variant="dark" expand="lg" sticky="top">
+        <Navbar.Brand as={Link} to="/">Weather App</Navbar.Brand>
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="mr-auto">
+            <Nav.Link as={Link} to="/">Home</Nav.Link>
+            <Nav.Link as={Link} to="/search">Search</Nav.Link>
+            <NavDropdown title="Previously Viewed" id="basic-nav-dropdown">
+              {recentlyViewed.length > 0 ? (
+                recentlyViewed.map((id, index) => (
+                  <NavDropdown.Item as={Link} to={`/city/${id}`} key={index}>
+                    City ID: {id}
+                  </NavDropdown.Item>
+                ))
+              ) : (
+                <NavDropdown.Item>No cities</NavDropdown.Item>
+              )}
+            </NavDropdown>
+          </Nav>
+          <Form className="d-flex ml-auto">
+            <FormControl
+              type="text"
+              placeholder="City ID"
+              className="mr-sm-2"
+              onChange={(e) => setSearchId(e.target.value)}
+            />
+            <Button as={Link} to={`/city/${searchId}`} variant="outline-success">
+              Search
+            </Button>
+          </Form>
+        </Navbar.Collapse>
+      </Navbar>
+      <Routes>
+        <Route path="/" element={<Home onViewCity={handleViewCity} />} />
+        <Route path="/search" element={<Search onViewCity={handleViewCity} />} />
+        <Route path="/city/:id" element={<CityDetail onViewCity={handleViewCity} />} />
+        <Route path="/visited" element={<VisitedCities cities={recentlyViewed} />} />
+      </Routes>
+    </Router>
   );
 };
 
