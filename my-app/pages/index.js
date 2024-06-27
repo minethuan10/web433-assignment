@@ -3,24 +3,27 @@ import React, { useEffect, useState } from 'react';
 import WeatherList from './components/WeatherList';
 import { fetchWeatherByCoords, fetchWeatherByCityId } from './api/weatherAPI';
 
-const Home = ({ onViewCity }) => {
+const Home = () => {
   const [localWeather, setLocalWeather] = useState(null);
   const [error, setError] = useState('');
   const [visitedCities, setVisitedCities] = useState([]);
 
-  // Function to fetch local weather based on geolocation
+  const onViewCity = (cityId) => {
+    console.log(`Viewing city ID: ${cityId}`);
+  };
+
   const getLocalWeather = async (latitude, longitude) => {
     try {
       const data = await fetchWeatherByCoords(latitude, longitude);
       setLocalWeather(data);
       onViewCity(data.id);
     } catch (error) {
+      console.error('Error fetching local weather:', error);
       setError('Error fetching local weather.');
     }
   };
 
   useEffect(() => {
-    // Fetch local weather when component mounts
     const fetchLocalWeather = () => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -28,23 +31,27 @@ const Home = ({ onViewCity }) => {
             const { latitude, longitude } = position.coords;
             getLocalWeather(latitude, longitude);
           },
-          () => setError('Location access denied.')
+          (error) => {
+            console.error('Geolocation error:', error);
+            setError('Location access denied.');
+          }
         );
       } else {
+        console.error('Geolocation not supported');
         setError('Geolocation is not supported by this browser.');
       }
     };
 
     fetchLocalWeather();
-  }, [onViewCity]);
+  }, []);
 
   const handleCityClick = async (cityId) => {
     try {
-      // Fetch weather data for the clicked city (replace with your API call)
       const data = await fetchWeatherByCityId(cityId);
       setVisitedCities([...visitedCities, data]); // Add city to visited cities list
       onViewCity(cityId);
     } catch (error) {
+      console.error('Error fetching city weather:', error);
       setError('Error fetching city weather.');
     }
   };

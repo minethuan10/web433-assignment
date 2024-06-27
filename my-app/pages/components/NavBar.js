@@ -29,16 +29,14 @@ export default function NavigationBar() {
           </Link>
         </Nav>
         <Form inline className="ml-auto">
-          <FormControl 
-            type="text" 
-            placeholder="City ID" 
-            className="mr-sm-2" 
-            onChange={handleInputChange} 
+          <FormControl
+            type="text"
+            placeholder="City ID"
+            className="mr-sm-2"
+            onChange={handleInputChange}
           />
-          <Link href={`/city/${searchId}`} passHref legacyBehavior>
-            <a>
-              <Button variant="outline-info">Search</Button>
-            </a>
+          <Link href={`/city/${searchId}`}>
+            <Button variant="outline-info">Search</Button>
           </Link>
         </Form>
       </Navbar.Collapse>
